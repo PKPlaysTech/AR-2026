@@ -25,23 +25,32 @@
 }
 
 /* ========================================================
-   1. 核心修复：强行将所有外壳层级设为透明，让底层摄像头画面透出来
+   1. 核心修复：精准将底层与 AR 场景设为透明，绝不误伤 React UI 层
    ======================================================== */
 html, 
 body, 
-#root, 
-#root > div {
+#root {
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
   height: 100% !important;
   overflow: hidden !important; /* 防止 AR 页面误触滚动或双击放大 */
-  background-color: transparent !important; /* 彻底移除安卓上的白屏死色 */
+  background-color: transparent !important; /* 彻底移除安卓/iOS 上的白屏死色 */
   background: transparent !important;
 }
 
 body {
   font-family: var(--font-sans);
+}
+
+/* 👉 核心改动：移除了原先的 #root > div 
+   仅针对 A-Frame 场景标签以及 AR.js 在 HTML 上动态加的各种注入属性进行透明化
+*/
+a-scene,
+[arjs-embedded],
+.arjs-loader {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 /* ========================================================
@@ -56,7 +65,7 @@ video[autoplay] {
   width: 100vw !important;
   height: 100vh !important;
   object-fit: cover !important; /* 保持摄像头画面比例撑满全屏 */
-  z-index: -2 !important;       /* 死死压在最底层，绝对不挡住 3D 渲染 */
+  z-index: -2 !important;       /* 死死压在最底层，绝对不挡住 3D 渲染和 UI 交互 */
   display: block !important;
 }
 
@@ -78,7 +87,7 @@ video[autoplay] {
 }
 
 /* ========================================================
-   4. 你原本的动画效果（保留）
+   4. 动画效果（保留）
    ======================================================== */
 @keyframes map-pulse {
   0% { transform: scale(1); opacity: 0.8; }
