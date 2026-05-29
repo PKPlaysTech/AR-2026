@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght=400;500;600;700&family=Nunito:wght=400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -24,13 +24,62 @@
   --color-accent-600: #d97706;
 }
 
-body {
-  margin: 0;
-  background-color: #f8fafc;
-  font-family: var(--font-sans);
-  overflow-x: hidden;
+/* ========================================================
+   1. 核心修复：强行将所有外壳层级设为透明，让底层摄像头画面透出来
+   ======================================================== */
+html, 
+body, 
+#root, 
+#root > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important; /* 防止 AR 页面误触滚动或双击放大 */
+  background-color: transparent !important; /* 彻底移除安卓上的白屏死色 */
+  background: transparent !important;
 }
 
+body {
+  font-family: var(--font-sans);
+}
+
+/* ========================================================
+   2. 视频层修复：强行修正安卓/Chromium 内核中动态生成的摄像头尺寸与层级
+   ======================================================== */
+body > video, 
+video[autoplay] {
+  max-width: none !important; /* 覆盖 Tailwind 对 video 的 max-width: 100% 限制 */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important; /* 保持摄像头画面比例撑满全屏 */
+  z-index: -2 !important;       /* 死死压在最底层，绝对不挡住 3D 渲染 */
+  display: block !important;
+}
+
+/* ========================================================
+   3. 画布层修复：确保 A-Frame 的 3D 渲染层在视频之上
+   ======================================================== */
+.a-canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1 !important; /* 让 3D 模型渲染在摄像头画面正上方 */
+}
+
+/* 隐藏 A-Frame 自动生成的 VR 按钮（防止误触干扰 AR 体验） */
+.a-enter-vr {
+  display: none !important;
+}
+
+/* ========================================================
+   4. 你原本的动画效果（保留）
+   ======================================================== */
 @keyframes map-pulse {
   0% { transform: scale(1); opacity: 0.8; }
   50% { transform: scale(1.1); opacity: 1; }
@@ -39,10 +88,4 @@ body {
 
 .animate-map-pulse {
   animation: map-pulse 2s infinite;
-}
-
-/* Fix AR.js video scaling issue with Tailwind CSS */
-/* Tailwind forces max-width: 100% on videos, which breaks AR.js aspect ratio calculations */
-body > video {
-  max-width: none !important;
 }
